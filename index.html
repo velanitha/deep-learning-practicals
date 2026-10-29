@@ -1,0 +1,889 @@
+<!doctype html>
+<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Deep Learning Practical Codes</title>
+<style>
+:root{--bg:#f5f7fb;--card:#fff;--text:#172033;--muted:#657089;--accent:#3157d5;--line:#e2e7f0}
+*{box-sizing:border-box}body{margin:0;font-family:Arial,Helvetica,sans-serif;background:var(--bg);color:var(--text);line-height:1.5}
+header{background:linear-gradient(135deg,#172554,#3157d5);color:white;padding:36px 18px 30px}.wrap{max-width:1000px;margin:auto}
+h1{margin:0 0 8px;font-size:clamp(26px,4vw,38px)}header p{margin:0;color:#e0e7ff}main{padding:22px 16px 50px}
+.notice{background:#fff7d6;border:1px solid #f1df91;padding:13px 15px;border-radius:12px;margin-bottom:18px;color:#5d4b10}
+.tools{display:flex;gap:10px;flex-wrap:wrap;margin-bottom:16px}input{flex:1;min-width:220px;padding:12px 14px;border:1px solid var(--line);border-radius:10px;font-size:16px}
+button{border:0;border-radius:8px;padding:9px 13px;background:var(--accent);color:#fff;font-weight:700;cursor:pointer}
+.card{background:var(--card);border:1px solid var(--line);border-radius:12px;margin:10px 0;overflow:hidden;box-shadow:0 2px 7px #14213d08}
+summary{cursor:pointer;display:flex;align-items:center;gap:12px;padding:15px;font-weight:700;list-style:none}.number{background:#e8edff;color:#2345b7;border-radius:8px;padding:4px 8px;font-size:13px}
+.actions{display:flex;align-items:center;gap:12px;padding:0 15px 10px}.hint{font-size:13px;color:var(--muted)}
+pre{margin:0;padding:16px;overflow:auto;background:#101827;color:#e5edf9;font-size:13px;line-height:1.55;max-height:560px}code{font-family:Consolas,Monaco,monospace;white-space:pre}
+.empty{display:none;padding:20px;text-align:center;color:var(--muted)}footer{text-align:center;color:var(--muted);font-size:13px;padding:18px}
+</style></head><body>
+<header><div class="wrap"><h1>Deep Learning Practical Codes</h1><p>34 practical programs · Search a topic · Open the code · Copy it into Google Colab</p></div></header>
+<main class="wrap"><div class="notice"><strong>Note:</strong> Some examples use synthetic/demo data to keep the programs simple. For real-world results, use the appropriate real dataset. Run each practical separately in Google Colab.</div>
+<div class="tools"><input id="search" type="search" placeholder="Search: CNN, LSTM, MNIST, Autoencoder..." aria-label="Search practicals"><button id="openAll" type="button">Open all</button><button id="closeAll" type="button">Close all</button></div>
+<div id="list">
+    <article class="card" data-title="1. dense neural network for mnist; compare activation functions">
+      <details>
+        <summary><span class="number">01</span><span>1. Dense neural network for MNIST; compare activation functions</span></summary>
+        <div class="actions"><button class="copy-btn" type="button">Copy code</button><span class="hint">Copy this code into a Google Colab cell.</span></div>
+        <pre><code>import tensorflow as tf
+from tensorflow.keras import layers, models
+import matplotlib.pyplot as plt
+
+# Load handwritten digit images (28x28 pixels)
+(x_train, y_train), (x_test, y_test) = tf.keras.datasets.mnist.load_data()
+# Scale pixel values from 0-255 to 0-1
+x_train, x_test = x_train / 255.0, x_test / 255.0
+
+# Train a small model for each activation function
+for activation in [&quot;relu&quot;, &quot;tanh&quot;, &quot;sigmoid&quot;]:
+    model = models.Sequential([
+        layers.Flatten(input_shape=(28, 28)),
+        layers.Dense(64, activation=activation),
+        layers.Dense(10, activation=&quot;softmax&quot;)
+    ])
+    model.compile(optimizer=&quot;adam&quot;,
+                  loss=&quot;sparse_categorical_crossentropy&quot;,
+                  metrics=[&quot;accuracy&quot;])
+    model.fit(x_train[:10000], y_train[:10000], epochs=2, verbose=0)
+    loss, accuracy = model.evaluate(x_test[:2000], y_test[:2000], verbose=0)
+    print(activation, &quot;test accuracy:&quot;, round(accuracy, 4))</code></pre>
+      </details>
+    </article>
+
+    <article class="card" data-title="2. mlp for iris; study different numbers of hidden layers">
+      <details>
+        <summary><span class="number">02</span><span>2. MLP for Iris; study different numbers of hidden layers</span></summary>
+        <div class="actions"><button class="copy-btn" type="button">Copy code</button><span class="hint">Copy this code into a Google Colab cell.</span></div>
+        <pre><code>from sklearn.datasets import load_iris
+from sklearn.model_selection import train_test_split
+from sklearn.preprocessing import StandardScaler
+from tensorflow.keras import Sequential, layers
+
+# Load the Iris flower dataset
+X, y = load_iris(return_X_y=True)
+X = StandardScaler().fit_transform(X)
+X_train, X_test, y_train, y_test = train_test_split(
+    X, y, test_size=0.2, random_state=42, stratify=y)
+
+# Compare one hidden layer with two hidden layers
+for hidden_layers in [1, 2, 3]:
+    model = Sequential([layers.Input(shape=(4,))])
+    for _ in range(hidden_layers):
+        model.add(layers.Dense(16, activation=&quot;relu&quot;))
+    model.add(layers.Dense(3, activation=&quot;softmax&quot;))
+    model.compile(optimizer=&quot;adam&quot;, loss=&quot;sparse_categorical_crossentropy&quot;,
+                  metrics=[&quot;accuracy&quot;])
+    model.fit(X_train, y_train, epochs=40, verbose=0)
+    print(hidden_layers, &quot;hidden layers - test accuracy:&quot;,
+          round(model.evaluate(X_test, y_test, verbose=0)[1], 3))</code></pre>
+      </details>
+    </article>
+
+    <article class="card" data-title="3. compare a basic cnn and a deeper cnn">
+      <details>
+        <summary><span class="number">03</span><span>3. Compare a basic CNN and a deeper CNN</span></summary>
+        <div class="actions"><button class="copy-btn" type="button">Copy code</button><span class="hint">Copy this code into a Google Colab cell.</span></div>
+        <pre><code>import tensorflow as tf
+from tensorflow.keras import layers, models
+
+# MNIST images are small and quick to train
+(x_train, y_train), (x_test, y_test) = tf.keras.datasets.mnist.load_data()
+x_train = x_train[:10000, ..., None] / 255.0
+x_test = x_test[:2000, ..., None] / 255.0
+y_train, y_test = y_train[:10000], y_test[:2000]
+
+# Build and test two CNN designs
+for deep in [False, True]:
+    model = models.Sequential([layers.Input((28, 28, 1)),
+                               layers.Conv2D(16, 3, activation=&quot;relu&quot;),
+                               layers.MaxPooling2D()])
+    if deep:
+        model.add(layers.Conv2D(32, 3, activation=&quot;relu&quot;))
+        model.add(layers.MaxPooling2D())
+    model.add(layers.Flatten())
+    model.add(layers.Dense(32, activation=&quot;relu&quot;))
+    model.add(layers.Dense(10, activation=&quot;softmax&quot;))
+    model.compile(optimizer=&quot;adam&quot;, loss=&quot;sparse_categorical_crossentropy&quot;,
+                  metrics=[&quot;accuracy&quot;])
+    model.fit(x_train, y_train, epochs=2, verbose=0)
+    print(&quot;Deeper CNN&quot; if deep else &quot;Basic CNN&quot;,
+          &quot;accuracy:&quot;, round(model.evaluate(x_test, y_test, verbose=0)[1], 3))</code></pre>
+      </details>
+    </article>
+
+    <article class="card" data-title="4. cnn for animal image categories (simple synthetic image demo)">
+      <details>
+        <summary><span class="number">04</span><span>4. CNN for animal image categories (simple synthetic image demo)</span></summary>
+        <div class="actions"><button class="copy-btn" type="button">Copy code</button><span class="hint">Copy this code into a Google Colab cell.</span></div>
+        <pre><code>import numpy as np
+import tensorflow as tf
+from tensorflow.keras import layers, models
+
+# Create simple example images for three classes; replace with real animal folders
+np.random.seed(1)
+X = np.random.rand(300, 32, 32, 3).astype(&quot;float32&quot;)
+y = np.repeat([0, 1, 2], 100)
+# Add a class-specific colour pattern so the demo can learn something
+for i in range(300):
+    X[i, :, :, y[i] % 3] += 0.5
+X = np.clip(X, 0, 1)
+
+model = models.Sequential([
+    layers.Input((32, 32, 3)), layers.Conv2D(16, 3, activation=&quot;relu&quot;),
+    layers.MaxPooling2D(), layers.Flatten(),
+    layers.Dense(32, activation=&quot;relu&quot;), layers.Dense(3, activation=&quot;softmax&quot;)
+])
+model.compile(optimizer=&quot;adam&quot;, loss=&quot;sparse_categorical_crossentropy&quot;,
+              metrics=[&quot;accuracy&quot;])
+model.fit(X, y, epochs=3, validation_split=0.2, verbose=1)
+print(&quot;Animal demo predictions:&quot;, np.argmax(model.predict(X[:5], verbose=0), axis=1))</code></pre>
+      </details>
+    </article>
+
+    <article class="card" data-title="5. bidirectional lstm vs standard lstm for text classification">
+      <details>
+        <summary><span class="number">05</span><span>5. Bidirectional LSTM vs standard LSTM for text classification</span></summary>
+        <div class="actions"><button class="copy-btn" type="button">Copy code</button><span class="hint">Copy this code into a Google Colab cell.</span></div>
+        <pre><code>import tensorflow as tf
+from tensorflow.keras import layers, models
+
+# Use a small built-in movie-review dataset
+vocab_size, max_len = 10000, 100
+(x_train, y_train), (x_test, y_test) = tf.keras.datasets.imdb.load_data(num_words=vocab_size)
+x_train = tf.keras.preprocessing.sequence.pad_sequences(x_train[:5000], maxlen=max_len)
+y_train = y_train[:5000]
+x_test = tf.keras.preprocessing.sequence.pad_sequences(x_test[:1000], maxlen=max_len)
+y_test = y_test[:1000]
+
+for bidirectional in [False, True]:
+    recurrent = layers.LSTM(16)
+    if bidirectional:
+        recurrent = layers.Bidirectional(recurrent)
+    model = models.Sequential([layers.Embedding(vocab_size, 32, input_length=max_len),
+                               recurrent, layers.Dense(1, activation=&quot;sigmoid&quot;)])
+    model.compile(optimizer=&quot;adam&quot;, loss=&quot;binary_crossentropy&quot;, metrics=[&quot;accuracy&quot;])
+    model.fit(x_train, y_train, epochs=2, batch_size=64, verbose=0)
+    print(&quot;BiLSTM&quot; if bidirectional else &quot;LSTM&quot;,
+          &quot;accuracy:&quot;, round(model.evaluate(x_test, y_test, verbose=0)[1], 3))</code></pre>
+      </details>
+    </article>
+
+    <article class="card" data-title="6. lstm time-series forecasting (synthetic weather/electricity-style data)">
+      <details>
+        <summary><span class="number">06</span><span>6. LSTM time-series forecasting (synthetic weather/electricity-style data)</span></summary>
+        <div class="actions"><button class="copy-btn" type="button">Copy code</button><span class="hint">Copy this code into a Google Colab cell.</span></div>
+        <pre><code>import numpy as np
+from tensorflow.keras import Sequential, layers
+
+# Generate a simple repeating time series
+series = np.sin(np.arange(1200) * 0.03) + 0.1 * np.random.randn(1200)
+window = 20
+X = np.array([series[i:i+window] for i in range(len(series)-window)])
+y = np.array([series[i+window] for i in range(len(series)-window)])
+X = X[..., None]
+
+model = Sequential([layers.Input((window, 1)), layers.LSTM(16), layers.Dense(1)])
+model.compile(optimizer=&quot;adam&quot;, loss=&quot;mse&quot;)
+model.fit(X[:900], y[:900], epochs=5, verbose=0)
+pred = model.predict(X[900:905], verbose=0).ravel()
+print(&quot;Actual:&quot;, np.round(y[900:905], 3))
+print(&quot;Predicted:&quot;, np.round(pred, 3))</code></pre>
+      </details>
+    </article>
+
+    <article class="card" data-title="7. denoising autoencoder for grayscale images">
+      <details>
+        <summary><span class="number">07</span><span>7. Denoising autoencoder for grayscale images</span></summary>
+        <div class="actions"><button class="copy-btn" type="button">Copy code</button><span class="hint">Copy this code into a Google Colab cell.</span></div>
+        <pre><code>import numpy as np
+import tensorflow as tf
+from tensorflow.keras import layers, models
+import matplotlib.pyplot as plt
+
+(x_train, _), (x_test, _) = tf.keras.datasets.mnist.load_data()
+x_train = x_train[:5000].astype(&quot;float32&quot;) / 255.0
+x_test = x_test[:5].astype(&quot;float32&quot;) / 255.0
+# Add random noise, then clip values into the valid range
+noisy_train = np.clip(x_train + 0.35*np.random.randn(*x_train.shape), 0, 1)
+noisy_test = np.clip(x_test + 0.35*np.random.randn(*x_test.shape), 0, 1)
+
+model = models.Sequential([
+    layers.Input((28, 28)), layers.Flatten(),
+    layers.Dense(128, activation=&quot;relu&quot;), layers.Dense(784, activation=&quot;sigmoid&quot;),
+    layers.Reshape((28, 28))
+])
+model.compile(optimizer=&quot;adam&quot;, loss=&quot;mse&quot;)
+model.fit(noisy_train, x_train, epochs=3, batch_size=64, verbose=1)
+cleaned = model.predict(noisy_test, verbose=0)
+plt.figure(figsize=(8, 3))
+for i in range(5):
+    plt.subplot(2, 5, i+1); plt.imshow(noisy_test[i], cmap=&quot;gray&quot;); plt.axis(&quot;off&quot;)
+    plt.subplot(2, 5, i+6); plt.imshow(cleaned[i], cmap=&quot;gray&quot;); plt.axis(&quot;off&quot;)
+plt.show()</code></pre>
+      </details>
+    </article>
+
+    <article class="card" data-title="8. autoencoder for mnist compression and reconstruction">
+      <details>
+        <summary><span class="number">08</span><span>8. Autoencoder for MNIST compression and reconstruction</span></summary>
+        <div class="actions"><button class="copy-btn" type="button">Copy code</button><span class="hint">Copy this code into a Google Colab cell.</span></div>
+        <pre><code>import tensorflow as tf
+from tensorflow.keras import layers, models
+import matplotlib.pyplot as plt
+
+(x_train, _), (x_test, _) = tf.keras.datasets.mnist.load_data()
+x_train = x_train[:5000].astype(&quot;float32&quot;) / 255.0
+x_test = x_test[:5].astype(&quot;float32&quot;) / 255.0
+
+encoder_input = layers.Input((28, 28))
+x = layers.Flatten()(encoder_input)
+encoded = layers.Dense(32, activation=&quot;relu&quot;)(x)  # compressed representation
+x = layers.Dense(784, activation=&quot;sigmoid&quot;)(encoded)
+decoded = layers.Reshape((28, 28))(x)
+autoencoder = models.Model(encoder_input, decoded)
+autoencoder.compile(optimizer=&quot;adam&quot;, loss=&quot;mse&quot;)
+autoencoder.fit(x_train, x_train, epochs=3, batch_size=64, verbose=1)
+
+reconstructed = autoencoder.predict(x_test, verbose=0)
+for i in range(5):
+    plt.subplot(2, 5, i+1); plt.imshow(x_test[i], cmap=&quot;gray&quot;); plt.axis(&quot;off&quot;)
+    plt.subplot(2, 5, i+6); plt.imshow(reconstructed[i], cmap=&quot;gray&quot;); plt.axis(&quot;off&quot;)
+plt.show()</code></pre>
+      </details>
+    </article>
+
+    <article class="card" data-title="9. question-answering system using a pretrained transformer">
+      <details>
+        <summary><span class="number">09</span><span>9. Question-answering system using a pretrained Transformer</span></summary>
+        <div class="actions"><button class="copy-btn" type="button">Copy code</button><span class="hint">Copy this code into a Google Colab cell.</span></div>
+        <pre><code># Simple extractive question answering using a pretrained Hugging Face model
+!pip -q install transformers
+
+from transformers import pipeline
+qa = pipeline(&quot;question-answering&quot;, model=&quot;distilbert/distilbert-base-cased-distilled-squad&quot;)
+context = &quot;The Sun is the star at the center of the Solar System. Earth orbits the Sun.&quot;
+question = &quot;What is at the center of the Solar System?&quot;
+result = qa(question=question, context=context)
+print(&quot;Answer:&quot;, result[&quot;answer&quot;])
+print(&quot;Confidence:&quot;, round(result[&quot;score&quot;], 3))</code></pre>
+      </details>
+    </article>
+
+    <article class="card" data-title="10. sentiment classification using pretrained bert">
+      <details>
+        <summary><span class="number">10</span><span>10. Sentiment classification using pretrained BERT</span></summary>
+        <div class="actions"><button class="copy-btn" type="button">Copy code</button><span class="hint">Copy this code into a Google Colab cell.</span></div>
+        <pre><code>!pip -q install transformers
+
+from transformers import pipeline
+# Pretrained sentiment model; first run downloads model files
+sentiment = pipeline(&quot;sentiment-analysis&quot;,
+                     model=&quot;distilbert/distilbert-base-uncased-finetuned-sst-2-english&quot;)
+texts = [&quot;This movie was excellent!&quot;, &quot;I did not enjoy this film.&quot;]
+for text in texts:
+    print(text, &quot;-&gt;&quot;, sentiment(text)[0])</code></pre>
+      </details>
+    </article>
+
+    <article class="card" data-title="11. siamese network: decide if two mnist digits are the same">
+      <details>
+        <summary><span class="number">11</span><span>11. Siamese network: decide if two MNIST digits are the same</span></summary>
+        <div class="actions"><button class="copy-btn" type="button">Copy code</button><span class="hint">Copy this code into a Google Colab cell.</span></div>
+        <pre><code>import numpy as np
+import tensorflow as tf
+from tensorflow.keras import layers, models
+
+(x_train, y_train), (x_test, y_test) = tf.keras.datasets.mnist.load_data()
+x_train = x_train[:10000].astype(&quot;float32&quot;) / 255.0
+y_train = y_train[:10000]
+x_test = x_test[:2000].astype(&quot;float32&quot;) / 255.0
+y_test = y_test[:2000]
+
+# Create pairs: half same class, half different class
+def make_pairs(images, labels, n=2000):
+    a, b, targets = [], [], []
+    for i in range(n):
+        idx1 = np.random.randint(len(images))
+        same = i % 2 == 0
+        candidates = np.where(labels == labels[idx1])[0] if same else np.where(labels != labels[idx1])[0]
+        idx2 = np.random.choice(candidates)
+        a.append(images[idx1]); b.append(images[idx2]); targets.append(int(same))
+    return np.array(a), np.array(b), np.array(targets)
+
+a, b, y = make_pairs(x_train, y_train)
+inp1, inp2 = layers.Input((28,28)), layers.Input((28,28))
+base = models.Sequential([layers.Flatten(), layers.Dense(64, activation=&quot;relu&quot;),
+                          layers.Dense(32, activation=&quot;relu&quot;)])
+e1, e2 = base(inp1), base(inp2)
+distance = layers.Lambda(lambda z: tf.sqrt(tf.reduce_sum(tf.square(z[0]-z[1]), axis=1, keepdims=True)+1e-7))([e1,e2])
+out = layers.Dense(1, activation=&quot;sigmoid&quot;)(layers.Concatenate()([e1,e2, distance]))
+model = models.Model([inp1, inp2], out)
+model.compile(optimizer=&quot;adam&quot;, loss=&quot;binary_crossentropy&quot;, metrics=[&quot;accuracy&quot;])
+model.fit([a,b], y, epochs=3, batch_size=64, verbose=1)
+print(&quot;Pair prediction (similarity score):&quot;, model.predict([a[:2], b[:2]], verbose=0).ravel())</code></pre>
+      </details>
+    </article>
+
+    <article class="card" data-title="12. siamese network for signature verification (synthetic demo)">
+      <details>
+        <summary><span class="number">12</span><span>12. Siamese network for signature verification (synthetic demo)</span></summary>
+        <div class="actions"><button class="copy-btn" type="button">Copy code</button><span class="hint">Copy this code into a Google Colab cell.</span></div>
+        <pre><code>import numpy as np
+import tensorflow as tf
+from tensorflow.keras import layers, models
+
+# Demo only: generate simple 16x16 signature-like patterns
+np.random.seed(2)
+X = np.random.rand(300,16,16).astype(&quot;float32&quot;)
+y = np.repeat(np.arange(10), 30)
+for i in range(len(X)):
+    X[i, 5:7, :] += y[i] / 20
+X = np.clip(X, 0, 1)
+a, b, same = [], [], []
+for i in range(500):
+    i1 = np.random.randint(len(X)); positive = i % 2 == 0
+    choices = np.where(y == y[i1])[0] if positive else np.where(y != y[i1])[0]
+    i2 = np.random.choice(choices)
+    a.append(X[i1]); b.append(X[i2]); same.append(int(positive))
+a,b,same = np.array(a),np.array(b),np.array(same)
+
+i1, i2 = layers.Input((16,16)), layers.Input((16,16))
+base = models.Sequential([layers.Flatten(), layers.Dense(32, activation=&quot;relu&quot;)])
+e1,e2 = base(i1),base(i2)
+dist = layers.Lambda(lambda z: tf.reduce_mean(tf.abs(z[0]-z[1]), axis=1, keepdims=True))([e1,e2])
+out = layers.Dense(1,activation=&quot;sigmoid&quot;)(layers.Concatenate()([e1,e2,dist]))
+model = models.Model([i1,i2],out)
+model.compile(optimizer=&quot;adam&quot;,loss=&quot;binary_crossentropy&quot;,metrics=[&quot;accuracy&quot;])
+model.fit([a,b],same,epochs=3,verbose=0)
+print(&quot;Signature-pair similarity scores:&quot;, model.predict([a[:4],b[:4]],verbose=0).ravel())</code></pre>
+      </details>
+    </article>
+
+    <article class="card" data-title="13. cnn for healthy vs diseased plant leaves (synthetic demo)">
+      <details>
+        <summary><span class="number">13</span><span>13. CNN for healthy vs diseased plant leaves (synthetic demo)</span></summary>
+        <div class="actions"><button class="copy-btn" type="button">Copy code</button><span class="hint">Copy this code into a Google Colab cell.</span></div>
+        <pre><code>import numpy as np
+from tensorflow.keras import layers, models
+
+# Synthetic demo images; use a real leaf dataset for a real classifier
+X = np.random.rand(400,32,32,3).astype(&quot;float32&quot;)
+y = np.random.randint(0,2,400)  # 0=healthy, 1=diseased
+# Give the classes a visible pattern to make this toy example learnable
+X[y==1, :, :, 0] = np.clip(X[y==1, :, :, 0] + 0.3, 0, 1)
+model = models.Sequential([
+    layers.Input((32,32,3)), layers.Conv2D(16,3,activation=&quot;relu&quot;),
+    layers.MaxPooling2D(), layers.Flatten(),
+    layers.Dense(32,activation=&quot;relu&quot;), layers.Dense(1,activation=&quot;sigmoid&quot;)
+])
+model.compile(optimizer=&quot;adam&quot;,loss=&quot;binary_crossentropy&quot;,metrics=[&quot;accuracy&quot;])
+model.fit(X,y,epochs=3,validation_split=0.2,verbose=1)
+print(&quot;Predicted classes:&quot;, (model.predict(X[:5],verbose=0).ravel()&gt;0.5).astype(int))</code></pre>
+      </details>
+    </article>
+
+    <article class="card" data-title="14. lstm classification of human activities using sensor data">
+      <details>
+        <summary><span class="number">14</span><span>14. LSTM classification of human activities using sensor data</span></summary>
+        <div class="actions"><button class="copy-btn" type="button">Copy code</button><span class="hint">Copy this code into a Google Colab cell.</span></div>
+        <pre><code>import numpy as np
+from sklearn.model_selection import train_test_split
+from sklearn.metrics import confusion_matrix, classification_report
+from tensorflow.keras import layers, models
+
+# Generate sample sensor sequences: 0=walking, 1=sitting, 2=running
+np.random.seed(3)
+X = np.random.randn(600, 30, 3).astype(&quot;float32&quot;)
+y = np.repeat([0,1,2], 200)
+X[y==0,:,0] += np.sin(np.arange(30)*0.5)
+X[y==1] *= 0.2
+X[y==2,:,1] += np.sin(np.arange(30)*1.2)
+X_train,X_test,y_train,y_test = train_test_split(X,y,test_size=0.2,random_state=42,stratify=y)
+
+model = models.Sequential([layers.Input((30,3)),layers.LSTM(24),layers.Dense(3,activation=&quot;softmax&quot;)])
+model.compile(optimizer=&quot;adam&quot;,loss=&quot;sparse_categorical_crossentropy&quot;,metrics=[&quot;accuracy&quot;])
+model.fit(X_train,y_train,epochs=5,verbose=0)
+pred = np.argmax(model.predict(X_test,verbose=0),axis=1)
+print(&quot;Accuracy:&quot;, np.mean(pred==y_test))
+print(&quot;Confusion matrix:\n&quot;, confusion_matrix(y_test,pred))
+print(classification_report(y_test,pred,zero_division=0))</code></pre>
+      </details>
+    </article>
+
+    <article class="card" data-title="15. effect of batch size and learning rate on dense network">
+      <details>
+        <summary><span class="number">15</span><span>15. Effect of batch size and learning rate on dense network</span></summary>
+        <div class="actions"><button class="copy-btn" type="button">Copy code</button><span class="hint">Copy this code into a Google Colab cell.</span></div>
+        <pre><code>import tensorflow as tf
+from tensorflow.keras import layers, models
+from sklearn.datasets import load_iris
+from sklearn.model_selection import train_test_split
+from sklearn.preprocessing import StandardScaler
+
+X,y = load_iris(return_X_y=True)
+X = StandardScaler().fit_transform(X)
+X_train,X_test,y_train,y_test = train_test_split(X,y,test_size=0.2,random_state=42)
+
+for batch in [8, 32]:
+    for rate in [0.001, 0.01]:
+        model = models.Sequential([layers.Input((4,)),layers.Dense(16,activation=&quot;relu&quot;),
+                                   layers.Dense(3,activation=&quot;softmax&quot;)])
+        model.compile(optimizer=tf.keras.optimizers.Adam(learning_rate=rate),
+                      loss=&quot;sparse_categorical_crossentropy&quot;,metrics=[&quot;accuracy&quot;])
+        model.fit(X_train,y_train,epochs=20,batch_size=batch,verbose=0)
+        print(&quot;batch=&quot;,batch,&quot;learning_rate=&quot;,rate,
+              &quot;accuracy=&quot;,round(model.evaluate(X_test,y_test,verbose=0)[1],3))</code></pre>
+      </details>
+    </article>
+
+    <article class="card" data-title="16. cnn for industrial surface defect classification (synthetic demo)">
+      <details>
+        <summary><span class="number">16</span><span>16. CNN for industrial surface defect classification (synthetic demo)</span></summary>
+        <div class="actions"><button class="copy-btn" type="button">Copy code</button><span class="hint">Copy this code into a Google Colab cell.</span></div>
+        <pre><code>import numpy as np
+from tensorflow.keras import layers, models
+
+# Synthetic grayscale images: 0=normal, 1=defect
+X = np.random.rand(400,32,32,1).astype(&quot;float32&quot;)
+y = np.random.randint(0,2,400)
+# Simulate a line-like defect in class 1
+X[y==1, 15:18, :, 0] = 1.0
+model = models.Sequential([layers.Input((32,32,1)),
+    layers.Conv2D(16,3,activation=&quot;relu&quot;),layers.MaxPooling2D(),
+    layers.Flatten(),layers.Dense(32,activation=&quot;relu&quot;),layers.Dense(1,activation=&quot;sigmoid&quot;)])
+model.compile(optimizer=&quot;adam&quot;,loss=&quot;binary_crossentropy&quot;,metrics=[&quot;accuracy&quot;])
+model.fit(X,y,epochs=3,validation_split=0.2,verbose=1)
+print(&quot;Predictions (0=normal, 1=defect):&quot;,
+      (model.predict(X[:5],verbose=0).ravel()&gt;0.5).astype(int))</code></pre>
+      </details>
+    </article>
+
+    <article class="card" data-title="17. lstm for news article categories (simple text demo)">
+      <details>
+        <summary><span class="number">17</span><span>17. LSTM for news article categories (simple text demo)</span></summary>
+        <div class="actions"><button class="copy-btn" type="button">Copy code</button><span class="hint">Copy this code into a Google Colab cell.</span></div>
+        <pre><code>import tensorflow as tf
+from tensorflow.keras import layers, models
+
+# Small built-in newswire dataset with topic labels
+(train_x, train_y), (test_x, test_y) = tf.keras.datasets.reuters.load_data(num_words=5000)
+train_x = tf.keras.preprocessing.sequence.pad_sequences(train_x[:4000],maxlen=100)
+train_y = train_y[:4000]
+test_x = tf.keras.preprocessing.sequence.pad_sequences(test_x[:1000],maxlen=100)
+test_y = test_y[:1000]
+model = models.Sequential([layers.Embedding(5000,32),layers.LSTM(32),
+                           layers.Dense(46,activation=&quot;softmax&quot;)])
+model.compile(optimizer=&quot;adam&quot;,loss=&quot;sparse_categorical_crossentropy&quot;,metrics=[&quot;accuracy&quot;])
+model.fit(train_x,train_y,epochs=2,batch_size=64,verbose=0)
+print(&quot;News category accuracy:&quot;, round(model.evaluate(test_x,test_y,verbose=0)[1],3))</code></pre>
+      </details>
+    </article>
+
+    <article class="card" data-title="18. dense neural network for predicting student academic performance">
+      <details>
+        <summary><span class="number">18</span><span>18. Dense neural network for predicting student academic performance</span></summary>
+        <div class="actions"><button class="copy-btn" type="button">Copy code</button><span class="hint">Copy this code into a Google Colab cell.</span></div>
+        <pre><code>import numpy as np
+from tensorflow.keras import layers, models
+from sklearn.model_selection import train_test_split
+from sklearn.preprocessing import StandardScaler
+
+# Example tabular data: study hours, attendance, previous score
+np.random.seed(4)
+X = np.random.rand(500,3)
+y = ((0.5*X[:,0] + 0.3*X[:,1] + 0.2*X[:,2]) &gt; 0.5).astype(int)
+X = StandardScaler().fit_transform(X)
+X_train,X_test,y_train,y_test = train_test_split(X,y,test_size=0.2,random_state=42)
+model = models.Sequential([layers.Input((3,)),layers.Dense(16,activation=&quot;relu&quot;),
+                           layers.Dense(8,activation=&quot;relu&quot;),layers.Dense(1,activation=&quot;sigmoid&quot;)])
+model.compile(optimizer=&quot;adam&quot;,loss=&quot;binary_crossentropy&quot;,metrics=[&quot;accuracy&quot;])
+model.fit(X_train,y_train,epochs=10,verbose=0)
+print(&quot;Test accuracy:&quot;, round(model.evaluate(X_test,y_test,verbose=0)[1],3))
+print(&quot;Predicted performance classes:&quot;, (model.predict(X_test[:5],verbose=0).ravel()&gt;0.5).astype(int))</code></pre>
+      </details>
+    </article>
+
+    <article class="card" data-title="19. mnist dense network and dropout effect on overfitting">
+      <details>
+        <summary><span class="number">19</span><span>19. MNIST dense network and dropout effect on overfitting</span></summary>
+        <div class="actions"><button class="copy-btn" type="button">Copy code</button><span class="hint">Copy this code into a Google Colab cell.</span></div>
+        <pre><code>import tensorflow as tf
+from tensorflow.keras import layers, models
+
+(x_train,y_train),(x_test,y_test) = tf.keras.datasets.mnist.load_data()
+x_train=x_train[:10000]/255.0; y_train=y_train[:10000]
+x_test=x_test[:2000]/255.0; y_test=y_test[:2000]
+
+for dropout in [0.0,0.4]:
+    model=models.Sequential([layers.Flatten(input_shape=(28,28)),
+        layers.Dense(128,activation=&quot;relu&quot;),layers.Dropout(dropout),
+        layers.Dense(10,activation=&quot;softmax&quot;)])
+    model.compile(optimizer=&quot;adam&quot;,loss=&quot;sparse_categorical_crossentropy&quot;,metrics=[&quot;accuracy&quot;])
+    history=model.fit(x_train,y_train,epochs=3,validation_split=0.2,verbose=0)
+    print(&quot;Dropout&quot;,dropout,
+          &quot;train accuracy&quot;,round(history.history[&quot;accuracy&quot;][-1],3),
+          &quot;validation accuracy&quot;,round(history.history[&quot;val_accuracy&quot;][-1],3),
+          &quot;test accuracy&quot;,round(model.evaluate(x_test,y_test,verbose=0)[1],3))</code></pre>
+      </details>
+    </article>
+
+    <article class="card" data-title="20. cnn for facial expression recognition (synthetic demo)">
+      <details>
+        <summary><span class="number">20</span><span>20. CNN for facial expression recognition (synthetic demo)</span></summary>
+        <div class="actions"><button class="copy-btn" type="button">Copy code</button><span class="hint">Copy this code into a Google Colab cell.</span></div>
+        <pre><code>import numpy as np
+from tensorflow.keras import layers, models
+
+# Synthetic 48x48 grayscale images; replace with FER dataset for real expressions
+X=np.random.rand(300,48,48,1).astype(&quot;float32&quot;)
+y=np.random.randint(0,3,300)  # 0,1,2 are example expression classes
+model=models.Sequential([layers.Input((48,48,1)),layers.Conv2D(16,3,activation=&quot;relu&quot;),
+    layers.MaxPooling2D(),layers.Conv2D(32,3,activation=&quot;relu&quot;),layers.MaxPooling2D(),
+    layers.Flatten(),layers.Dense(32,activation=&quot;relu&quot;),layers.Dense(3,activation=&quot;softmax&quot;)])
+model.compile(optimizer=&quot;adam&quot;,loss=&quot;sparse_categorical_crossentropy&quot;,metrics=[&quot;accuracy&quot;])
+model.fit(X,y,epochs=2,validation_split=0.2,verbose=1)
+print(&quot;Predicted expression labels:&quot;,np.argmax(model.predict(X[:5],verbose=0),axis=1))</code></pre>
+      </details>
+    </article>
+
+    <article class="card" data-title="21. cnn for recyclable waste categories (synthetic demo)">
+      <details>
+        <summary><span class="number">21</span><span>21. CNN for recyclable waste categories (synthetic demo)</span></summary>
+        <div class="actions"><button class="copy-btn" type="button">Copy code</button><span class="hint">Copy this code into a Google Colab cell.</span></div>
+        <pre><code>import numpy as np
+from tensorflow.keras import layers, models
+
+# Synthetic images with four example labels: paper, plastic, glass, metal
+X=np.random.rand(400,32,32,3).astype(&quot;float32&quot;)
+y=np.random.randint(0,4,400)
+for cls in range(4):
+    X[y==cls,:,:,cls%3]=np.clip(X[y==cls,:,:,cls%3]+0.25,0,1)
+model=models.Sequential([layers.Input((32,32,3)),layers.Conv2D(16,3,activation=&quot;relu&quot;),
+    layers.MaxPooling2D(),layers.Flatten(),layers.Dense(32,activation=&quot;relu&quot;),
+    layers.Dense(4,activation=&quot;softmax&quot;)])
+model.compile(optimizer=&quot;adam&quot;,loss=&quot;sparse_categorical_crossentropy&quot;,metrics=[&quot;accuracy&quot;])
+model.fit(X,y,epochs=3,validation_split=0.2,verbose=1)
+print(&quot;Predicted waste labels:&quot;,np.argmax(model.predict(X[:5],verbose=0),axis=1))</code></pre>
+      </details>
+    </article>
+
+    <article class="card" data-title="22. lstm stock-price trend prediction (synthetic series)">
+      <details>
+        <summary><span class="number">22</span><span>22. LSTM stock-price trend prediction (synthetic series)</span></summary>
+        <div class="actions"><button class="copy-btn" type="button">Copy code</button><span class="hint">Copy this code into a Google Colab cell.</span></div>
+        <pre><code>import numpy as np
+from tensorflow.keras import layers, models
+
+# Synthetic price series; this is a coding demo, not financial advice
+prices=100+np.cumsum(np.random.randn(1000)*0.5)
+window=20
+X=np.array([prices[i:i+window] for i in range(len(prices)-window)])
+y=np.array([prices[i+window] for i in range(len(prices)-window)])
+mean,std=X[:800].mean(),X[:800].std()
+X=((X-mean)/std)[...,None]; y=(y-mean)/std
+model=models.Sequential([layers.Input((window,1)),layers.LSTM(16),layers.Dense(1)])
+model.compile(optimizer=&quot;adam&quot;,loss=&quot;mse&quot;)
+model.fit(X[:800],y[:800],epochs=5,verbose=0)
+print(&quot;Scaled actual:&quot;,np.round(y[800:805],2))
+print(&quot;Scaled predicted:&quot;,np.round(model.predict(X[800:805],verbose=0).ravel(),2))</code></pre>
+      </details>
+    </article>
+
+    <article class="card" data-title="23. bidirectional lstm for named-entity/sequence labeling (toy demo)">
+      <details>
+        <summary><span class="number">23</span><span>23. Bidirectional LSTM for named-entity/sequence labeling (toy demo)</span></summary>
+        <div class="actions"><button class="copy-btn" type="button">Copy code</button><span class="hint">Copy this code into a Google Colab cell.</span></div>
+        <pre><code>import numpy as np
+from tensorflow.keras import layers, models
+
+# Toy sequence labels: 1 marks tokens in the middle of a sequence
+X=np.random.randint(1,100,(500,12))
+y=np.zeros((500,12),dtype=&quot;int32&quot;)
+y[:,4:7]=1
+model=models.Sequential([layers.Embedding(100,16,input_length=12),
+    layers.Bidirectional(layers.LSTM(16,return_sequences=True)),
+    layers.TimeDistributed(layers.Dense(2,activation=&quot;softmax&quot;))])
+model.compile(optimizer=&quot;adam&quot;,loss=&quot;sparse_categorical_crossentropy&quot;,metrics=[&quot;accuracy&quot;])
+model.fit(X,y,epochs=3,batch_size=32,verbose=0)
+print(&quot;Token labels for one sequence:&quot;,np.argmax(model.predict(X[:1],verbose=0),axis=-1)[0])</code></pre>
+      </details>
+    </article>
+
+    <article class="card" data-title="24. undercomplete autoencoder vs pca">
+      <details>
+        <summary><span class="number">24</span><span>24. Undercomplete autoencoder vs PCA</span></summary>
+        <div class="actions"><button class="copy-btn" type="button">Copy code</button><span class="hint">Copy this code into a Google Colab cell.</span></div>
+        <pre><code>import numpy as np
+from sklearn.datasets import load_digits
+from sklearn.decomposition import PCA
+from sklearn.metrics import mean_squared_error
+from tensorflow.keras import layers, models
+
+X=load_digits().data.astype(&quot;float32&quot;)/16.0
+# PCA baseline compressed to 16 features
+pca=PCA(n_components=16)
+Xp=pca.fit_transform(X)
+pca_recon=pca.inverse_transform(Xp)
+print(&quot;PCA reconstruction MSE:&quot;,round(mean_squared_error(X,pca_recon),4))
+
+# Neural autoencoder with 16-value bottleneck
+inp=layers.Input((64,))
+z=layers.Dense(16,activation=&quot;relu&quot;)(inp)
+out=layers.Dense(64,activation=&quot;sigmoid&quot;)(z)
+ae=models.Model(inp,out)
+ae.compile(optimizer=&quot;adam&quot;,loss=&quot;mse&quot;)
+ae.fit(X,X,epochs=30,batch_size=32,verbose=0)
+recon=ae.predict(X,verbose=0)
+print(&quot;Autoencoder reconstruction MSE:&quot;,round(mean_squared_error(X,recon),4))</code></pre>
+      </details>
+    </article>
+
+    <article class="card" data-title="25. convolutional autoencoder for image reconstruction">
+      <details>
+        <summary><span class="number">25</span><span>25. Convolutional autoencoder for image reconstruction</span></summary>
+        <div class="actions"><button class="copy-btn" type="button">Copy code</button><span class="hint">Copy this code into a Google Colab cell.</span></div>
+        <pre><code>import tensorflow as tf
+from tensorflow.keras import layers, models
+import matplotlib.pyplot as plt
+
+(x_train,_),(x_test,_)=tf.keras.datasets.mnist.load_data()
+x_train=x_train[:5000].astype(&quot;float32&quot;)[...,None]/255.0
+x_test=x_test[:5].astype(&quot;float32&quot;)[...,None]/255.0
+inp=layers.Input((28,28,1))
+x=layers.Conv2D(16,3,activation=&quot;relu&quot;,padding=&quot;same&quot;)(inp)
+x=layers.MaxPooling2D(padding=&quot;same&quot;)(x)
+x=layers.Conv2D(8,3,activation=&quot;relu&quot;,padding=&quot;same&quot;)(x)
+x=layers.UpSampling2D()(x)
+out=layers.Conv2D(1,3,activation=&quot;sigmoid&quot;,padding=&quot;same&quot;)(x)
+model=models.Model(inp,out)
+model.compile(optimizer=&quot;adam&quot;,loss=&quot;mse&quot;)
+model.fit(x_train,x_train,epochs=3,batch_size=64,verbose=1)
+recon=model.predict(x_test,verbose=0)
+for i in range(5):
+    plt.subplot(2,5,i+1);plt.imshow(x_test[i,:,:,0],cmap=&quot;gray&quot;);plt.axis(&quot;off&quot;)
+    plt.subplot(2,5,i+6);plt.imshow(recon[i,:,:,0],cmap=&quot;gray&quot;);plt.axis(&quot;off&quot;)
+plt.show()</code></pre>
+      </details>
+    </article>
+
+    <article class="card" data-title="26. autoencoder for anomaly detection">
+      <details>
+        <summary><span class="number">26</span><span>26. Autoencoder for anomaly detection</span></summary>
+        <div class="actions"><button class="copy-btn" type="button">Copy code</button><span class="hint">Copy this code into a Google Colab cell.</span></div>
+        <pre><code>import numpy as np
+from tensorflow.keras import layers, models
+
+# Normal data follows a compact distribution; anomalies are shifted
+np.random.seed(5)
+normal=np.random.normal(0,1,(1000,10)).astype(&quot;float32&quot;)
+test=np.vstack([np.random.normal(0,1,(100,10)),np.random.normal(4,1,(20,10))]).astype(&quot;float32&quot;)
+inp=layers.Input((10,))
+z=layers.Dense(4,activation=&quot;relu&quot;)(inp)
+out=layers.Dense(10)(z)
+ae=models.Model(inp,out)
+ae.compile(optimizer=&quot;adam&quot;,loss=&quot;mse&quot;)
+ae.fit(normal,normal,epochs=20,batch_size=32,verbose=0)
+errors=np.mean((test-ae.predict(test,verbose=0))**2,axis=1)
+threshold=np.mean(np.mean((normal-ae.predict(normal,verbose=0))**2,axis=1))*2
+print(&quot;Anomaly threshold:&quot;,round(threshold,3))
+print(&quot;First 10 anomaly flags:&quot;,errors[:10]&gt;threshold)
+print(&quot;Last 10 anomaly flags:&quot;,errors[-10:]&gt;threshold)</code></pre>
+      </details>
+    </article>
+
+    <article class="card" data-title="27. transformer document classification and fine-tuning comparison">
+      <details>
+        <summary><span class="number">27</span><span>27. Transformer document classification and fine-tuning comparison</span></summary>
+        <div class="actions"><button class="copy-btn" type="button">Copy code</button><span class="hint">Copy this code into a Google Colab cell.</span></div>
+        <pre><code>!pip -q install transformers datasets
+
+from transformers import pipeline
+# Lightweight pretrained text classifier; compares two pipeline configurations
+texts=[&quot;The team won the match after a great performance.&quot;,
+       &quot;The government announced a new policy today.&quot;]
+classifier=pipeline(&quot;text-classification&quot;,
+                    model=&quot;distilbert/distilbert-base-uncased-finetuned-sst-2-english&quot;)
+for text in texts:
+    print(text, &quot;-&gt;&quot;, classifier(text)[0])
+print(&quot;Note: this is pretrained sentiment classification, not a fine-tuned document-topic model.&quot;)</code></pre>
+      </details>
+    </article>
+
+    <article class="card" data-title="28. multilingual sentiment analysis using a pretrained transformer">
+      <details>
+        <summary><span class="number">28</span><span>28. Multilingual sentiment analysis using a pretrained Transformer</span></summary>
+        <div class="actions"><button class="copy-btn" type="button">Copy code</button><span class="hint">Copy this code into a Google Colab cell.</span></div>
+        <pre><code>!pip -q install transformers sentencepiece
+
+from transformers import pipeline
+# Multilingual sentiment model
+classifier=pipeline(&quot;sentiment-analysis&quot;,
+                    model=&quot;nlptown/bert-base-multilingual-uncased-sentiment&quot;)
+texts=[&quot;This product is excellent.&quot;, &quot;Este producto es terrible.&quot;, &quot;Ce film est très bon.&quot;]
+for text in texts:
+    print(text, &quot;-&gt;&quot;, classifier(text)[0])</code></pre>
+      </details>
+    </article>
+
+    <article class="card" data-title="29. question-answering system using a pretrained transformer (second listed task)">
+      <details>
+        <summary><span class="number">29</span><span>29. Question-answering system using a pretrained Transformer (second listed task)</span></summary>
+        <div class="actions"><button class="copy-btn" type="button">Copy code</button><span class="hint">Copy this code into a Google Colab cell.</span></div>
+        <pre><code>!pip -q install transformers
+
+from transformers import pipeline
+qa=pipeline(&quot;question-answering&quot;,model=&quot;distilbert/distilbert-base-cased-distilled-squad&quot;)
+context=&quot;Water freezes at zero degrees Celsius and boils at one hundred degrees Celsius.&quot;
+for question in [&quot;At what temperature does water freeze?&quot;,&quot;At what temperature does water boil?&quot;]:
+    print(question, &quot;-&gt;&quot;, qa(question=question,context=context)[&quot;answer&quot;])</code></pre>
+      </details>
+    </article>
+
+    <article class="card" data-title="30. siamese network for genuine/forged signature similarity (toy demo)">
+      <details>
+        <summary><span class="number">30</span><span>30. Siamese network for genuine/forged signature similarity (toy demo)</span></summary>
+        <div class="actions"><button class="copy-btn" type="button">Copy code</button><span class="hint">Copy this code into a Google Colab cell.</span></div>
+        <pre><code># Same simple paired-image Siamese approach as the signature practical
+import numpy as np, tensorflow as tf
+from tensorflow.keras import layers, models
+
+X=np.random.rand(200,16,16).astype(&quot;float32&quot;)
+labels=np.repeat(np.arange(10),20)
+a=[];b=[];same=[]
+for i in range(400):
+    j=np.random.randint(200); positive=i%2==0
+    candidates=np.where(labels==labels[j])[0] if positive else np.where(labels!=labels[j])[0]
+    k=np.random.choice(candidates);a.append(X[j]);b.append(X[k]);same.append(int(positive))
+a,b,same=np.array(a),np.array(b),np.array(same)
+i1,i2=layers.Input((16,16)),layers.Input((16,16))
+base=models.Sequential([layers.Flatten(),layers.Dense(32,activation=&quot;relu&quot;)])
+e1,e2=base(i1),base(i2)
+distance=layers.Lambda(lambda z: tf.reduce_mean(tf.abs(z[0]-z[1]),axis=1,keepdims=True))([e1,e2])
+out=layers.Dense(1,activation=&quot;sigmoid&quot;)(layers.Concatenate()([e1,e2,distance]))
+model=models.Model([i1,i2],out)
+model.compile(optimizer=&quot;adam&quot;,loss=&quot;binary_crossentropy&quot;,metrics=[&quot;accuracy&quot;])
+model.fit([a,b],same,epochs=3,verbose=0)
+print(&quot;Similarity scores:&quot;,model.predict([a[:5],b[:5]],verbose=0).ravel())
+print(&quot;Use a real genuine/forged signature dataset for meaningful verification.&quot;)</code></pre>
+      </details>
+    </article>
+
+    <article class="card" data-title="31. siamese network for product image similarity (toy demo)">
+      <details>
+        <summary><span class="number">31</span><span>31. Siamese network for product image similarity (toy demo)</span></summary>
+        <div class="actions"><button class="copy-btn" type="button">Copy code</button><span class="hint">Copy this code into a Google Colab cell.</span></div>
+        <pre><code>import numpy as np, tensorflow as tf
+from tensorflow.keras import layers, models
+
+X=np.random.rand(300,32,32,3).astype(&quot;float32&quot;)
+labels=np.repeat(np.arange(10),30)
+a=[];b=[];same=[]
+for i in range(500):
+    j=np.random.randint(300); positive=i%2==0
+    candidates=np.where(labels==labels[j])[0] if positive else np.where(labels!=labels[j])[0]
+    k=np.random.choice(candidates);a.append(X[j]);b.append(X[k]);same.append(int(positive))
+a,b,same=np.array(a),np.array(b),np.array(same)
+i1,i2=layers.Input((32,32,3)),layers.Input((32,32,3))
+base=models.Sequential([layers.Conv2D(8,3,activation=&quot;relu&quot;),layers.MaxPooling2D(),
+    layers.Flatten(),layers.Dense(32,activation=&quot;relu&quot;)])
+e1,e2=base(i1),base(i2)
+d=layers.Lambda(lambda z: tf.reduce_mean(tf.abs(z[0]-z[1]),axis=1,keepdims=True))([e1,e2])
+out=layers.Dense(1,activation=&quot;sigmoid&quot;)(layers.Concatenate()([e1,e2,d]))
+model=models.Model([i1,i2],out)
+model.compile(optimizer=&quot;adam&quot;,loss=&quot;binary_crossentropy&quot;,metrics=[&quot;accuracy&quot;])
+model.fit([a,b],same,epochs=2,verbose=0)
+print(&quot;Product similarity scores:&quot;,model.predict([a[:5],b[:5]],verbose=0).ravel())</code></pre>
+      </details>
+    </article>
+
+    <article class="card" data-title="32. siamese network for face verification using lfw">
+      <details>
+        <summary><span class="number">32</span><span>32. Siamese network for face verification using LFW</span></summary>
+        <div class="actions"><button class="copy-btn" type="button">Copy code</button><span class="hint">Copy this code into a Google Colab cell.</span></div>
+        <pre><code># Download the LFW face dataset through scikit-learn and train a small pair model
+import numpy as np
+from sklearn.datasets import fetch_lfw_people
+from tensorflow.keras import layers, models
+import tensorflow as tf
+
+faces=fetch_lfw_people(min_faces_per_person=20,resize=0.25,color=False)
+X=faces.images.astype(&quot;float32&quot;)/255.0
+labels=faces.target
+# Use a subset to keep this practical quick
+X,labels=X[:1000],labels[:1000]
+a=[];b=[];same=[]
+for i in range(600):
+    j=np.random.randint(len(X)); positive=i%2==0
+    candidates=np.where(labels==labels[j])[0] if positive else np.where(labels!=labels[j])[0]
+    if len(candidates)==0: continue
+    k=np.random.choice(candidates);a.append(X[j]);b.append(X[k]);same.append(int(positive))
+a,b,same=np.array(a),np.array(b),np.array(same)
+shape=X.shape[1:]
+i1,i2=layers.Input(shape),layers.Input(shape)
+base=models.Sequential([layers.Flatten(),layers.Dense(64,activation=&quot;relu&quot;),layers.Dense(32,activation=&quot;relu&quot;)])
+e1,e2=base(i1),base(i2)
+d=layers.Lambda(lambda z: tf.reduce_mean(tf.abs(z[0]-z[1]),axis=1,keepdims=True))([e1,e2])
+out=layers.Dense(1,activation=&quot;sigmoid&quot;)(layers.Concatenate()([e1,e2,d]))
+model=models.Model([i1,i2],out)
+model.compile(optimizer=&quot;adam&quot;,loss=&quot;binary_crossentropy&quot;,metrics=[&quot;accuracy&quot;])
+model.fit([a,b],same,epochs=2,verbose=1)
+print(&quot;Face-pair scores:&quot;,model.predict([a[:3],b[:3]],verbose=0).ravel())</code></pre>
+      </details>
+    </article>
+
+    <article class="card" data-title="33. lstm or transformer to classify news as real/fake (toy demo)">
+      <details>
+        <summary><span class="number">33</span><span>33. LSTM or Transformer to classify news as real/fake (toy demo)</span></summary>
+        <div class="actions"><button class="copy-btn" type="button">Copy code</button><span class="hint">Copy this code into a Google Colab cell.</span></div>
+        <pre><code>import numpy as np
+from tensorflow.keras import layers, models
+from sklearn.model_selection import train_test_split
+from sklearn.metrics import classification_report
+
+# Toy numeric sequences stand in for tokenized news; replace with a labeled news dataset
+X=np.random.randint(1,500,(600,40))
+y=np.random.randint(0,2,600) # 0=fake, 1=real (random demo labels)
+X_train,X_test,y_train,y_test=train_test_split(X,y,test_size=0.2,random_state=42)
+model=models.Sequential([layers.Embedding(500,32),layers.LSTM(24),layers.Dense(1,activation=&quot;sigmoid&quot;)])
+model.compile(optimizer=&quot;adam&quot;,loss=&quot;binary_crossentropy&quot;,metrics=[&quot;accuracy&quot;])
+model.fit(X_train,y_train,epochs=3,verbose=0)
+pred=(model.predict(X_test,verbose=0).ravel()&gt;0.5).astype(int)
+print(&quot;Accuracy:&quot;,np.mean(pred==y_test))
+print(classification_report(y_test,pred,zero_division=0))
+print(&quot;Note: random labels are only for demonstrating code, not real/fake news detection.&quot;)</code></pre>
+      </details>
+    </article>
+
+    <article class="card" data-title="34. autoencoder denoising; compare mse and psnr">
+      <details>
+        <summary><span class="number">34</span><span>34. Autoencoder denoising; compare MSE and PSNR</span></summary>
+        <div class="actions"><button class="copy-btn" type="button">Copy code</button><span class="hint">Copy this code into a Google Colab cell.</span></div>
+        <pre><code>import numpy as np
+import tensorflow as tf
+from tensorflow.keras import layers, models
+from skimage.metrics import peak_signal_noise_ratio
+!pip -q install scikit-image
+
+(x_train,_),(x_test,_)=tf.keras.datasets.mnist.load_data()
+x_train=x_train[:3000].astype(&quot;float32&quot;)/255.0
+clean=x_test[:10].astype(&quot;float32&quot;)/255.0
+noisy=np.clip(clean+0.3*np.random.randn(*clean.shape),0,1)
+noisy_train=np.clip(x_train+0.3*np.random.randn(*x_train.shape),0,1)
+model=models.Sequential([layers.Input((28,28)),layers.Flatten(),
+    layers.Dense(128,activation=&quot;relu&quot;),layers.Dense(784,activation=&quot;sigmoid&quot;),
+    layers.Reshape((28,28))])
+model.compile(optimizer=&quot;adam&quot;,loss=&quot;mse&quot;)
+model.fit(noisy_train,x_train,epochs=3,batch_size=64,verbose=0)
+restored=model.predict(noisy,verbose=0)
+mse=np.mean((clean-restored)**2)
+psnr=np.mean([peak_signal_noise_ratio(clean[i],restored[i],data_range=1.0) for i in range(len(clean))])
+print(&quot;Mean Squared Error (MSE):&quot;,round(float(mse),5))
+print(&quot;Peak Signal-to-Noise Ratio (PSNR):&quot;,round(float(psnr),2),&quot;dB&quot;)</code></pre>
+      </details>
+    </article></div><div id="empty" class="empty">No practical found. Try another keyword.</div></main>
+<footer>Deep Learning Practical Codes · Built as a simple study reference</footer>
+<script>
+const search=document.getElementById('search'),cards=[...document.querySelectorAll('.card')];
+search.addEventListener('input',()=>{const q=search.value.toLowerCase().trim();let shown=0;cards.forEach(card=>{const match=card.dataset.title.includes(q)||card.innerText.toLowerCase().includes(q);card.style.display=match?'':'none';if(match)shown++;});document.getElementById('empty').style.display=shown?'none':'block';});
+document.getElementById('openAll').addEventListener('click',()=>cards.forEach(c=>{if(c.style.display!=='none')c.querySelector('details').open=true;}));
+document.getElementById('closeAll').addEventListener('click',()=>cards.forEach(c=>c.querySelector('details').open=false));
+document.querySelectorAll('.copy-btn').forEach(btn=>btn.addEventListener('click',async()=>{const code=btn.closest('details').querySelector('code').innerText;try{await navigator.clipboard.writeText(code);btn.textContent='Copied!';}catch(e){const range=document.createRange();range.selectNodeContents(btn.closest('details').querySelector('code'));const sel=window.getSelection();sel.removeAllRanges();sel.addRange(range);btn.textContent='Select and copy';}setTimeout(()=>btn.textContent='Copy code',1800);}));
+</script></body></html>
